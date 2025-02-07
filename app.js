@@ -1,0 +1,20 @@
+const express = require('express');
+const app = express();
+const port = 3000;
+
+app.get('/', (req, res) => {
+	  res.send('Hello World!');
+});
+
+app.get('/reviews', (req, res) => {
+	  res.send('This is the reviews page.');
+});
+
+
+app.get('/locations', (req, res) => {
+	res.send('This is the locations page.');
+});
+
+app.listen(port, () => {
+	console.log(`Server running at http://localhost:${port}/`);
+});
