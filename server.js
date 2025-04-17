@@ -1,37 +1,50 @@
-const express = require('express');
+const express = require("express");
 const app = express();
-const port = 3306; 
+const mysql = require("mysql2");
+const pool = require("./db"); // Connectiong pool with the db
+const PORT = 3000;
 
+app.use(express.json());
 
-app.use(express.json()); 
-
-app.get('/', (req, res) => {
-	    res.send('API работает!');
+// Main page
+app.get("/", (req, res) => {
+  res.send("API работает!");
 });
 
-app.get('/locations', (req, res) => {
-	    const locations = [
-		            { 
-				                id: 1, 
-				                name: "Москва",
-				                reviews: [
-							                { id: 1, review: "Отличное место для прогулок!" },
-							                { id: 2, review: "Немного холодно зимой, но очень красиво!" }
-							            ]
-				            },
-		            { 
-				                id: 2, 
-				                name: "Санкт-Петербург",
-				                reviews: [
-							                { id: 3, review: "Очень красивый город, много достопримечательностей." },
-							                { id: 4, review: "Зимой бывают сильные морозы, но город стоит того!" }
-							            ]
-				            }
-		        ];
-	    res.json(locations);
+// Getting locations with reviews 
+app.get("/locations", async (req, res) => {
+  try {
+    const [locations] = await pool.query("SELECT * FROM locations");
+    const locationsWithReviews = await Promise.all(locations.map(async (location) => {
+      const [reviews] = await pool.query("SELECT * FROM reviews WHERE location_id = ?", [location.id]);
+      location.reviews = reviews;
+      return location;
+    }));
+    res.json(locationsWithReviews);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Ошибка при получении локаций");
+  }
+});
+
+// Getting locations with using  ID
+app.get("/locations/:id", async (req, res) => {
+  const locationId = req.params.id;
+  try {
+    const [location] = await pool.query("SELECT * FROM locations WHERE id = ?", [locationId]);
+    if (!location.length) {
+      return res.status(404).send("Локация не найдена");
+    }
+    const [reviews] = await pool.query("SELECT * FROM reviews WHERE location_id = ?", [locationId]);
+    location[0].reviews = reviews;
+    res.json(location[0]);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Ошибка при получении локации");
+  }
 });
 
 app.listen(PORT, () => {
-	    console.log(`Сервер запущен на http://localhost:${PORT}`);
-}):
+  console.log(`Сервер запущен на http://localhost:${PORT}`);
+});
 

@@ -1,8 +1,10 @@
-FROM mysql:8.0
+FROM node:20
 
-# Настройки базы данных
-ENV MYSQL_ROOT_PASSWORD=Nesel_Nesel123
-ENV MYSQL_DATABASE=mydatabase
+WORKDIR /app
+COPY package.json /app
+RUN npm install
+COPY . /app
 
 EXPOSE 3306
+CMD ["node", "server.js"]
 
