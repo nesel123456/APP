@@ -1,14 +1,17 @@
-const mysql = require('mysql2');
+const { Client } = require('pg');
+require('dotenv').config();
 
-const pool = mysql.createPool({
-	    host: '172.30.109.66',
-	    user: 'bener',      
-	    password: 'Nesel_Nesel123',
-	    database: 'database_for_myapi', 
-	    waitForConnections: true,
-	    connectionLimit: 10,
-	    queueLimit: 0
+const client = new Client({
+  connectionString: process.env.DATABASE_URL,
 });
 
-module.exports = pool.promise();
+client.connect()
+  .then(() => {
+    console.log('Подключение к базе данных успешно');
+  })
+  .catch((err) => {
+    console.error('Ошибка подключения: ', err.stack);
+  });
+
+module.exports = client;
 
