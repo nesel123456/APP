@@ -78,7 +78,30 @@ app.get("/reviews/:id", async (req, res) => {
     res.status(500).send("Ошибка при получении отзыва");
   }
 });
+//Новый эндпоит для добавления новой локации в BD
+app.post("/locations", async (req, res) => {
+  const { name } = req.body;  // получаем название локации из тела запроса
+  if (!name) {
+    return res.status(400).send("Поле 'name' обязательно");
+  }
 
+  try {
+    // Добавление локации в таблицу locations
+    const result = await client.query(
+      "INSERT INTO locations (name) VALUES ($1) RETURNING id", 
+      [name]
+    );
+
+    // Получаем id только что добавленной локации
+    const location = result.rows[0];
+    
+    // Отправляем ответ с данными новой локации
+    res.status(201).json(location);  // Возвращаем добавленную локацию с её ID
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Ошибка при добавлении локации");
+  }
+});
 app.listen(PORT, () => {
   console.log(`Сервер запущен на http://localhost:${PORT}`);
 });
